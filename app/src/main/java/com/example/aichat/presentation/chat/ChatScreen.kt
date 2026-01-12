@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.aichat.domain.model.Message
+import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,8 +139,8 @@ fun MessageItem(message: Message) {
                 .background(backgroundColor)
                 .padding(12.dp)
         ) {
-            Text(
-                text = message.content,
+            MarkdownText(
+                markdown = message.content,
                 color = textColor,
                 style = MaterialTheme.typography.bodyLarge
             )
