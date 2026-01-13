@@ -4,6 +4,7 @@ import com.example.aichat.data.mapper.toDomain
 import com.example.aichat.data.mapper.toDto
 import com.example.aichat.data.remote.api.DeepSeekApiService
 import com.example.aichat.data.remote.dto.ChatRequestDto
+import com.example.aichat.data.remote.dto.MessageDto
 import com.example.aichat.domain.model.Message
 import com.example.aichat.domain.repository.ChatRepository
 
@@ -13,8 +14,17 @@ class ChatRepositoryImpl(
 
     override suspend fun sendMessage(messages: List<Message>): Result<Message> {
         return try {
+            // Создаём system message с инструкцией о формате JSON
+            val systemMessage = MessageDto(
+                role = "system",
+                content = ChatRequestDto.SYSTEM_PROMPT
+            )
+
+            // Добавляем system prompt в начало списка сообщений
+            val messagesWithSystem = listOf(systemMessage) + messages.map { it.toDto() }
+
             val request = ChatRequestDto(
-                messages = messages.map { it.toDto() }
+                messages = messagesWithSystem
             )
 
             val response = apiService.sendMessage(request)

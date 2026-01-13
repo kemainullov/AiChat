@@ -139,11 +139,41 @@ fun MessageItem(message: Message) {
                 .background(backgroundColor)
                 .padding(12.dp)
         ) {
-            MarkdownText(
-                markdown = message.content,
-                color = textColor,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Column {
+                MarkdownText(
+                    markdown = message.content,
+                    color = textColor,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                // Отображаем структурированные данные для ответов AI
+                if (!message.isFromUser && (message.mood != null || message.topics != null)) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                            .padding(8.dp)
+                    ) {
+                        Column {
+                            message.mood?.let { mood ->
+                                Text(
+                                    text = "Настроение: $mood",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = textColor.copy(alpha = 0.7f)
+                                )
+                            }
+                            message.topics?.let { topics ->
+                                Text(
+                                    text = "Темы: ${topics.joinToString(", ")}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = textColor.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
