@@ -170,6 +170,20 @@ fun MessageItem(message: Message) {
                                     color = textColor.copy(alpha = 0.7f)
                                 )
                             }
+                            message.rawJson?.let { rawJson ->
+                                Text(
+                                    text = "Сырой JSON:",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = textColor.copy(alpha = 0.7f),
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                                Text(
+                                    text = rawJson,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = textColor.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
                         }
                     }
                 }

@@ -37,7 +37,8 @@ private fun parseAiResponse(rawContent: String): Message {
             content = aiResponse.answer,
             isFromUser = false,
             mood = aiResponse.mood,
-            topics = aiResponse.topics
+            topics = aiResponse.topics,
+            rawJson = rawContent
         )
     } catch (e: JsonSyntaxException) {
         // Fallback: если JSON невалидный, используем сырой контент

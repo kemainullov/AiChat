@@ -6,5 +6,6 @@ data class Message(
     val timestamp: Long = System.currentTimeMillis(),
     // Структурированные данные из JSON ответа AI (только для ответов AI)
     val mood: String? = null,
-    val topics: List<String>? = null
+    val topics: List<String>? = null,
+    val rawJson: String? = null
 )
