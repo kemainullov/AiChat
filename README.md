@@ -39,15 +39,11 @@ You MUST always respond in the following JSON format:
      
       mood = aiResponse.mood,        // "friendly"
      
-      topics = aiResponse.topics     // ["Kotlin", "программирование"]
+      topics = aiResponse.topics,     // ["Kotlin", "программирование"]
+     
+      rawJson = rawContent     // Сырой JSON
   
   )
 
 5. UI показывает структурированные данные под ответом AI.
 
-
-
-Лог запроса:
-{"messages":[{"content":"You are a helpful AI assistant.\nYou MUST always respond in the following JSON format:\n{\n  \"answer\": \"Your detailed answer here\",\n  \"mood\": \"neutral|friendly|serious|curious\",\n  \"topics\": [\"topic1\", \"topic2\"]\n}\n\nRules:\n- \"answer\" - your main response text (required)\n- \"mood\" - your emotional tone for this response (required)\n- \"topics\" - list of 1-3 main topics discussed (required)\n- Always respond with valid JSON only, no additional text outside JSON\n- Use Russian language for the \"answer\" field when user writes in Russian","role":"system"},{"content":"2+2?","role":"user"}],"model":"deepseek-chat","stream":false}
-
-Лог ответа: **"message":{"role":"assistant","content":"{\n  \"answer\": \"2 + 2 = 4. Это основная арифметическая операция сложения.\",\n  \"mood\": \"friendly\",\n  \"topics\": [\"математика\", \"арифметика\", \"сложение\"]\n}"}**
