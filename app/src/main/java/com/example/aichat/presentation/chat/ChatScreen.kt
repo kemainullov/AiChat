@@ -63,7 +63,7 @@ fun ChatScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("AI Chat") },
+                title = { Text("Что на ужин? 🍽️") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -86,7 +86,7 @@ fun ChatScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(uiState.messages) { message ->
-                    MessageItem(message = message)
+                    MessageItem(message)
                 }
 
                 if (uiState.isLoading) {
@@ -114,17 +114,21 @@ fun ChatScreen(
 }
 
 @Composable
-fun MessageItem(message: Message) {
+fun MessageItem(initialMessage: Message) {
+    val isResult = initialMessage.content.contains("===РЕЗУЛЬТАТ===")
+    val message = if (isResult) initialMessage.copy(content = initialMessage.content.replace("===РЕЗУЛЬТАТ===", "")) else initialMessage
     val alignment = if (message.isFromUser) Alignment.CenterEnd else Alignment.CenterStart
-    val backgroundColor = if (message.isFromUser) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.secondaryContainer
+
+    val backgroundColor = when {
+        isResult -> MaterialTheme.colorScheme.tertiaryContainer
+        message.isFromUser -> MaterialTheme.colorScheme.primaryContainer
+        else -> MaterialTheme.colorScheme.secondaryContainer
     }
-    val textColor = if (message.isFromUser) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSecondaryContainer
+
+    val textColor = when {
+        isResult -> MaterialTheme.colorScheme.onTertiaryContainer
+        message.isFromUser -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onSecondaryContainer
     }
 
     Box(
@@ -133,17 +137,27 @@ fun MessageItem(message: Message) {
             .padding(vertical = 4.dp),
         contentAlignment = alignment
     ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .background(backgroundColor)
-                .padding(12.dp)
-        ) {
-            MarkdownText(
-                markdown = message.content,
-                color = textColor,
-                style = MaterialTheme.typography.bodyLarge
-            )
+        Column {
+            if (isResult) {
+                Text(
+                    text = "🍽️ РЕКОМЕНДАЦИЯ БЛЮДА",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.padding(bottom = 4.dp, start = 4.dp)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(backgroundColor)
+                    .padding(12.dp)
+            ) {
+                MarkdownText(
+                    markdown = message.content,
+                    color = textColor,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
     }
 }
@@ -166,7 +180,7 @@ fun MessageInput(
             value = text,
             onValueChange = onTextChanged,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Введите сообщение...") },
+            placeholder = { Text("Ответьте на вопрос...") },
             enabled = enabled,
             maxLines = 5
         )
