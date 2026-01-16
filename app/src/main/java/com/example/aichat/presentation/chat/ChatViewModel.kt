@@ -40,7 +40,10 @@ class ChatViewModel(
         }
 
         viewModelScope.launch {
-            val result = sendMessageUseCase(_uiState.value.messages)
+            val result = sendMessageUseCase(
+                messages = _uiState.value.messages,
+                systemPrompt = _uiState.value.systemPrompt
+            )
 
             result.fold(
                 onSuccess = { aiMessage ->
@@ -61,6 +64,22 @@ class ChatViewModel(
                 }
             )
         }
+    }
+
+    fun onSystemPromptChanged(prompt: String) {
+        _uiState.update { it.copy(systemPrompt = prompt) }
+    }
+
+    fun openSystemPromptDialog() {
+        _uiState.update { it.copy(isSystemPromptDialogOpen = true) }
+    }
+
+    fun closeSystemPromptDialog() {
+        _uiState.update { it.copy(isSystemPromptDialogOpen = false) }
+    }
+
+    fun clearChat() {
+        _uiState.update { it.copy(messages = emptyList()) }
     }
 
     fun clearError() {

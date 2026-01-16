@@ -7,11 +7,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -60,6 +66,15 @@ fun ChatScreen(
         }
     }
 
+    // System Prompt Dialog
+    if (uiState.isSystemPromptDialogOpen) {
+        SystemPromptDialog(
+            currentPrompt = uiState.systemPrompt,
+            onPromptChanged = viewModel::onSystemPromptChanged,
+            onDismiss = viewModel::closeSystemPromptDialog
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -67,7 +82,21 @@ fun ChatScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                actions = {
+                    IconButton(onClick = viewModel::clearChat) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Очистить чат"
+                        )
+                    }
+                    IconButton(onClick = viewModel::openSystemPromptDialog) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Настройки System Prompt"
+                        )
+                    }
+                }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -186,4 +215,39 @@ fun MessageInput(
             )
         }
     }
+}
+
+@Composable
+fun SystemPromptDialog(
+    currentPrompt: String,
+    onPromptChanged: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("System Prompt") },
+        text = {
+            Column {
+                Text(
+                    text = "Задайте инструкции для AI-ассистента:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = currentPrompt,
+                    onValueChange = onPromptChanged,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    placeholder = { Text("Например: Ты пират и отвечаешь как пират...") },
+                    maxLines = 6
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Готово")
+            }
+        }
+    )
 }
