@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -77,6 +78,12 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            TemperatureSelector(
+                selectedTemperature = uiState.selectedTemperature,
+                onTemperatureSelected = viewModel::onTemperatureChanged,
+                enabled = !uiState.isLoading
+            )
+
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -184,6 +191,56 @@ fun MessageInput(
                     Color.Gray
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun TemperatureSelector(
+    selectedTemperature: Float,
+    onTemperatureSelected: (Float) -> Unit,
+    enabled: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = "Температура",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TemperatureOption.entries.forEach { option ->
+                FilterChip(
+                    selected = selectedTemperature == option.value,
+                    onClick = { onTemperatureSelected(option.value) },
+                    enabled = enabled,
+                    label = {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = option.label,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = option.description,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ import com.example.aichat.domain.repository.ChatRepository
 class SendMessageUseCase(
     private val repository: ChatRepository
 ) {
-    suspend operator fun invoke(messages: List<Message>): Result<Message> {
-        return repository.sendMessage(messages)
+    suspend operator fun invoke(messages: List<Message>, temperature: Float = 0.7f): Result<Message> {
+        return repository.sendMessage(messages, temperature)
     }
 }

@@ -21,6 +21,10 @@ class ChatViewModel(
         _uiState.update { it.copy(inputText = text) }
     }
 
+    fun onTemperatureChanged(temperature: Float) {
+        _uiState.update { it.copy(selectedTemperature = temperature) }
+    }
+
     fun sendMessage() {
         val inputText = _uiState.value.inputText.trim()
         if (inputText.isEmpty() || _uiState.value.isLoading) return
@@ -40,7 +44,10 @@ class ChatViewModel(
         }
 
         viewModelScope.launch {
-            val result = sendMessageUseCase(_uiState.value.messages)
+            val result = sendMessageUseCase(
+                messages = _uiState.value.messages,
+                temperature = _uiState.value.selectedTemperature
+            )
 
             result.fold(
                 onSuccess = { aiMessage ->

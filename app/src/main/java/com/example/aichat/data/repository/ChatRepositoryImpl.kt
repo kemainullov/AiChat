@@ -11,10 +11,11 @@ class ChatRepositoryImpl(
     private val apiService: DeepSeekApiService
 ) : ChatRepository {
 
-    override suspend fun sendMessage(messages: List<Message>): Result<Message> {
+    override suspend fun sendMessage(messages: List<Message>, temperature: Float): Result<Message> {
         return try {
             val request = ChatRequestDto(
-                messages = messages.map { it.toDto() }
+                messages = messages.map { it.toDto() },
+                temperature = temperature
             )
 
             val response = apiService.sendMessage(request)
