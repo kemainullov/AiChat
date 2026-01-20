@@ -7,7 +7,7 @@ data class ComparisonUiState(
     val prompt: String = "",
     val selectedModels: List<AiModel> = listOf(
         AiModel.DEEPSEEK_CHAT,
-        AiModel.DEEPSEEK_REASONER
+        AiModel.GIGACHAT_LITE
     ),
     val isLoading: Boolean = false,
     val comparison: ModelComparison? = null,

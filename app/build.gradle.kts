@@ -27,6 +27,9 @@ android {
         }
         val deepseekApiKey = properties.getProperty("DEEPSEEK_API_KEY", "")
         buildConfigField("String", "DEEPSEEK_API_KEY", "\"$deepseekApiKey\"")
+
+        val gigachatAuthKey = properties.getProperty("GIGACHAT_AUTH_KEY", "")
+        buildConfigField("String", "GIGACHAT_AUTH_KEY", "\"$gigachatAuthKey\"")
     }
 
     buildTypes {

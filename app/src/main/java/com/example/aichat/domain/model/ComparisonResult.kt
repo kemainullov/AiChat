@@ -11,12 +11,11 @@ data class ComparisonResult(
     val totalTokens: Int get() = inputTokens + outputTokens
 
     val estimatedCost: Double
-        get() = (inputTokens * model.pricePerInputToken) +
-                (outputTokens * model.pricePerOutputToken)
+        get() = totalTokens * model.pricePerToken
 
     val estimatedCostFormatted: String
         get() = if (estimatedCost > 0) {
-            String.format("$%.6f", estimatedCost)
+            String.format("%.6f%s", estimatedCost, model.currency)
         } else {
             "Бесплатно"
         }
