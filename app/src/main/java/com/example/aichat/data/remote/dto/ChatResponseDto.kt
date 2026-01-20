@@ -12,7 +12,18 @@ data class ChatResponseDto(
     @SerializedName("model")
     val model: String,
     @SerializedName("choices")
-    val choices: List<ChoiceDto>
+    val choices: List<ChoiceDto>,
+    @SerializedName("usage")
+    val usage: UsageDto? = null
+)
+
+data class UsageDto(
+    @SerializedName("prompt_tokens")
+    val promptTokens: Int,
+    @SerializedName("completion_tokens")
+    val completionTokens: Int,
+    @SerializedName("total_tokens")
+    val totalTokens: Int
 )
 
 data class ChoiceDto(
