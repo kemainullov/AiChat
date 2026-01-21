@@ -3,6 +3,7 @@ package com.example.aichat.presentation.comparison
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aichat.domain.model.AiModel
+import com.example.aichat.domain.model.PromptExample
 import com.example.aichat.domain.usecase.CompareModelsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,24 @@ class ComparisonViewModel(
     val uiState: StateFlow<ComparisonUiState> = _uiState.asStateFlow()
 
     fun onPromptChanged(prompt: String) {
-        _uiState.update { it.copy(prompt = prompt) }
+        _uiState.update {
+            it.copy(
+                prompt = prompt,
+                estimatedTokens = AiModel.estimateTokens(prompt),
+                selectedExample = null // Сбрасываем выбранный пример при ручном вводе
+            )
+        }
+    }
+
+    fun onExampleSelected(example: PromptExample) {
+        _uiState.update {
+            it.copy(
+                prompt = example.prompt,
+                estimatedTokens = example.estimatedTokens,
+                selectedExample = example,
+                comparison = null // Сбрасываем предыдущее сравнение
+            )
+        }
     }
 
     fun onModelToggled(model: AiModel) {

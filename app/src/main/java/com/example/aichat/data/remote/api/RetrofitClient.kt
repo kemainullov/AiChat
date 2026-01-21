@@ -26,9 +26,8 @@ object RetrofitClient {
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
         .addInterceptor(loggingInterceptor)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(360, TimeUnit.SECONDS)  // 6 минут для чтения (модели могут думать долго)
+        .writeTimeout(120, TimeUnit.SECONDS)   // 2 минуты для отправки больших запросов
         .build()
 
     private val retrofit = Retrofit.Builder()
