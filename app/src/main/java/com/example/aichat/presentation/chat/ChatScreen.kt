@@ -5,13 +5,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -21,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -34,8 +43,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.aichat.domain.model.Message
+import com.example.aichat.domain.model.MessageType
+import com.example.aichat.domain.model.TokenStats
 import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,7 +81,15 @@ fun ChatScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { viewModel.clearChat() }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Очистить чат"
+                        )
+                    }
+                }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -77,6 +99,15 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Панель статистики токенов и настроек сжатия
+            TokenStatsPanel(
+                tokenStats = uiState.tokenStats,
+                compressionEnabled = uiState.compressionEnabled,
+                compressionThreshold = uiState.compressionThreshold,
+                isCompressing = uiState.isCompressing,
+                onToggleCompression = viewModel::toggleCompression
+            )
+
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -101,20 +132,151 @@ fun ChatScreen(
                         }
                     }
                 }
+
+                if (uiState.isCompressing) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                                Text(
+                                    text = "Сжатие истории...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontStyle = FontStyle.Italic
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             MessageInput(
                 text = uiState.inputText,
                 onTextChanged = viewModel::onInputTextChanged,
                 onSendClick = viewModel::sendMessage,
-                enabled = !uiState.isLoading
+                enabled = !uiState.isLoading && !uiState.isCompressing
             )
         }
     }
 }
 
 @Composable
+fun TokenStatsPanel(
+    tokenStats: TokenStats,
+    compressionEnabled: Boolean,
+    compressionThreshold: Int,
+    isCompressing: Boolean,
+    onToggleCompression: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Статистика токенов",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Сжатие",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Switch(
+                        checked = compressionEnabled,
+                        onCheckedChange = { onToggleCompression() },
+                        enabled = !isCompressing
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatItem(label = "Prompt", value = tokenStats.totalPromptTokens)
+                StatItem(label = "Completion", value = tokenStats.totalCompletionTokens)
+                StatItem(label = "Всего", value = tokenStats.totalTokens)
+            }
+
+            if (tokenStats.compressionCount > 0) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    StatItem(label = "Сжатий", value = tokenStats.compressionCount)
+                    StatItem(label = "Сжато сообщ.", value = tokenStats.savedMessagesCount)
+                    StatItem(label = "Запросов", value = tokenStats.requestCount)
+                }
+            }
+
+            if (compressionEnabled) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Порог сжатия: $compressionThreshold сообщений",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItem(label: String, value: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
 fun MessageItem(message: Message) {
+    when (message.type) {
+        MessageType.SUMMARY -> SummaryMessageItem(message)
+        else -> RegularMessageItem(message)
+    }
+}
+
+@Composable
+fun RegularMessageItem(message: Message) {
     val alignment = if (message.isFromUser) Alignment.CenterEnd else Alignment.CenterStart
     val backgroundColor = if (message.isFromUser) {
         MaterialTheme.colorScheme.primaryContainer
@@ -143,6 +305,48 @@ fun MessageItem(message: Message) {
                 markdown = message.content,
                 color = textColor,
                 style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
+@Composable
+fun SummaryMessageItem(message: Message) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Summary (${message.compressedMessagesCount} сообщений)",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            MarkdownText(
+                markdown = message.content,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontStyle = FontStyle.Italic
+                )
             )
         }
     }

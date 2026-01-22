@@ -12,7 +12,9 @@ data class ChatResponseDto(
     @SerializedName("model")
     val model: String,
     @SerializedName("choices")
-    val choices: List<ChoiceDto>
+    val choices: List<ChoiceDto>,
+    @SerializedName("usage")
+    val usage: UsageDto? = null
 )
 
 data class ChoiceDto(

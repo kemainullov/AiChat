@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.aichat.data.remote.api.RetrofitClient
 import com.example.aichat.data.repository.ChatRepositoryImpl
+import com.example.aichat.domain.usecase.CompressHistoryUseCase
 import com.example.aichat.domain.usecase.SendMessageUseCase
 import com.example.aichat.presentation.chat.ChatScreen
 import com.example.aichat.presentation.chat.ChatViewModel
@@ -18,7 +19,8 @@ class MainActivity : ComponentActivity() {
 
         val repository = ChatRepositoryImpl(RetrofitClient.apiService)
         val sendMessageUseCase = SendMessageUseCase(repository)
-        val viewModel = ChatViewModel(sendMessageUseCase)
+        val compressHistoryUseCase = CompressHistoryUseCase(repository)
+        val viewModel = ChatViewModel(sendMessageUseCase, compressHistoryUseCase)
 
         setContent {
             AiChatTheme {
