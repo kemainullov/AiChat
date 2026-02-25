@@ -1,5 +1,9 @@
 package com.example.aichat.presentation.chat
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,8 +37,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.example.aichat.domain.model.Message
 import dev.jeziellago.compose.markdowntext.MarkdownText
 
@@ -46,6 +52,29 @@ fun ChatScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) viewModel.startVoiceInput()
+    }
+
+    fun onVoiceClick() {
+        if (uiState.isListening) {
+            viewModel.stopVoiceInput()
+            return
+        }
+        val permissionGranted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (permissionGranted) {
+            viewModel.startVoiceInput()
+        } else {
+            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     LaunchedEffect(uiState.messages.size) {
         if (uiState.messages.isNotEmpty()) {
@@ -107,6 +136,8 @@ fun ChatScreen(
                 text = uiState.inputText,
                 onTextChanged = viewModel::onInputTextChanged,
                 onSendClick = viewModel::sendMessage,
+                onVoiceClick = ::onVoiceClick,
+                isListening = uiState.isListening,
                 enabled = !uiState.isLoading
             )
         }
@@ -153,6 +184,8 @@ fun MessageInput(
     text: String,
     onTextChanged: (String) -> Unit,
     onSendClick: () -> Unit,
+    onVoiceClick: () -> Unit,
+    isListening: Boolean,
     enabled: Boolean
 ) {
     Row(
@@ -166,10 +199,27 @@ fun MessageInput(
             value = text,
             onValueChange = onTextChanged,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Введите сообщение...") },
+            placeholder = {
+                Text(if (isListening) "Слушаю..." else "Введите сообщение...")
+            },
             enabled = enabled,
             maxLines = 5
         )
+
+        IconButton(
+            onClick = onVoiceClick,
+            enabled = enabled
+        ) {
+            Icon(
+                painter = painterResource(android.R.drawable.ic_btn_speak_now),
+                contentDescription = if (isListening) "Остановить запись" else "Голосовой ввод",
+                tint = when {
+                    isListening -> MaterialTheme.colorScheme.error
+                    enabled -> MaterialTheme.colorScheme.primary
+                    else -> Color.Gray
+                }
+            )
+        }
 
         IconButton(
             onClick = onSendClick,
