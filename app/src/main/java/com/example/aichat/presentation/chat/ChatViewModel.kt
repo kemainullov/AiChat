@@ -29,6 +29,7 @@ class ChatViewModel(
                     }
                     is RecognitionState.Result -> {
                         _uiState.update { it.copy(inputText = state.text, isListening = false) }
+                        sendMessage()
                     }
                     is RecognitionState.Error -> {
                         _uiState.update { it.copy(isListening = false, error = state.message) }

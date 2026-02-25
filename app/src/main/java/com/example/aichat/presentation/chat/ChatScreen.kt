@@ -134,8 +134,6 @@ fun ChatScreen(
 
             MessageInput(
                 text = uiState.inputText,
-                onTextChanged = viewModel::onInputTextChanged,
-                onSendClick = viewModel::sendMessage,
                 onVoiceClick = ::onVoiceClick,
                 isListening = uiState.isListening,
                 enabled = !uiState.isLoading
@@ -182,8 +180,6 @@ fun MessageItem(message: Message) {
 @Composable
 fun MessageInput(
     text: String,
-    onTextChanged: (String) -> Unit,
-    onSendClick: () -> Unit,
     onVoiceClick: () -> Unit,
     isListening: Boolean,
     enabled: Boolean
@@ -197,12 +193,12 @@ fun MessageInput(
     ) {
         OutlinedTextField(
             value = text,
-            onValueChange = onTextChanged,
+            onValueChange = {},
             modifier = Modifier.weight(1f),
             placeholder = {
-                Text(if (isListening) "Слушаю..." else "Введите сообщение...")
+                Text(if (isListening) "Слушаю..." else "Нажмите микрофон и говорите")
             },
-            enabled = enabled,
+            readOnly = true,
             maxLines = 5
         )
 
@@ -217,21 +213,6 @@ fun MessageInput(
                     isListening -> MaterialTheme.colorScheme.error
                     enabled -> MaterialTheme.colorScheme.primary
                     else -> Color.Gray
-                }
-            )
-        }
-
-        IconButton(
-            onClick = onSendClick,
-            enabled = enabled && text.isNotBlank()
-        ) {
-            Icon(
-                painter = painterResource(android.R.drawable.ic_menu_send),
-                contentDescription = "Отправить",
-                tint = if (enabled && text.isNotBlank()) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    Color.Gray
                 }
             )
         }
